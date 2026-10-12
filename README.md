@@ -88,7 +88,3 @@ Connection settings are read from environment variables (set in `docker-compose.
 ```bash
 curl -X POST -d 'message=hello rabbit' http://localhost:8080/
 ```
-
-## Author
-
-Asish Sajeev — asishsajeev@gmail.com
