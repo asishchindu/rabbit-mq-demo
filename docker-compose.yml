@@ -1,0 +1,44 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  producer:
+    build: .
+    command: php -S 0.0.0.0:8080 -t public
+    ports:
+      - "8080:8080"
+    environment: &rabbit_env
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    volumes:
+      - shared-data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  consumer:
+    build: .
+    command: php consumer.php
+    environment: *rabbit_env
+    volumes:
+      - shared-data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  shared-data:
